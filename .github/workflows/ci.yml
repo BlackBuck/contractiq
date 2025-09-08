@@ -1,0 +1,41 @@
+name: CI - Backend Tests (Docker)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-tests:
+    name: Build backend image and run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU (for cross-platform docker)
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build backend image
+        run: |
+          docker build -f backend/Dockerfile -t contract-backend:ci backend
+
+      - name: Run tests inside container
+        # Run pytest in the image: mount workspace and run pytest
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/work" \
+            -w /work/backend \
+            contract-backend:ci \
+            bash -lc "pytest -q --junitxml=/work/backend/test-results.xml"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: backend/test-results.xml

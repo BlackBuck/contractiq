@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+pymongo
+motor
+python-multipart
+pydantic
+python-dotenv
+pdfplumber
+pytest
+httpx
+requests
+fitz
+json-repair
